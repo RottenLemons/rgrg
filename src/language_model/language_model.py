@@ -111,7 +111,7 @@ class GPT2PseudoAttention(nn.Module):
 
         attn_output = torch.matmul(attn_weights, value_image_word)  # shape [batch_size x num_heads x seq_len x head_dim]
 
-        return attn_output
+        return attn_output, attn_weights
 
     def _merge_heads(self, tensor, num_heads, head_dim):
         """
@@ -123,10 +123,13 @@ class GPT2PseudoAttention(nn.Module):
 
     def forward(self,
                 word_hidden_states,  # shape [batch_size x seq_len x hidden_dim]
-                image_hidden_states,  # shape [batch_size x hidden_dim]
+                 
                 attention_mask,  # shape [batch_size, 1, 1, 1+seq_len]
                 layer_past,
-                use_cache):
+                use_cache,
+                image_hidden_states=None, # shape [batch_size x hidden_dim]
+                output_attentions=None,
+                head_mask=None):
 
         # query, key, value matrices each have shape [batch_size x seq_len x hidden_dim]
         q_word, k_word, v_word = self.c_attn(word_hidden_states).split(self.split_size, dim=2)
@@ -158,7 +161,7 @@ class GPT2PseudoAttention(nn.Module):
             else:
                 present = None
 
-            attn_output = self._attn(q_word, k_image_word, v_image_word, attention_mask)  # shape [batch_size x num_heads x seq_len x head_dim]
+            attn_output, attn_weights = self._attn(q_word, k_image_word, v_image_word, attention_mask)  # shape [batch_size x num_heads x seq_len x head_dim]
         else:
             # if there is a layer_past (which stores key and value tensors of past tokens), then this means we are in text generation mode
             q_word = self._split_heads(q_word, self.num_heads, self.head_dim)  # shape [batch_size x num_heads x 1 x head_dim]
@@ -171,12 +174,14 @@ class GPT2PseudoAttention(nn.Module):
 
             present = (k, v)
 
-            attn_output = self._attn(q_word, k, v, attention_mask)  # shape [batch_size x num_heads x seq_len x head_dim]
+            attn_output, attn_weights = self._attn(q_word, k, v, attention_mask)  # shape [batch_size x num_heads x seq_len x head_dim]
 
         attn_output = self._merge_heads(attn_output, self.num_heads, self.head_dim)  # shape [batch_size x seq_len x hidden_dim]
         attn_output = self.c_proj(attn_output)
         attn_output = self.resid_dropout(attn_output)  # shape [batch_size x seq_len x hidden_dim]
 
+        if output_attentions:
+            outputs += (attn_weights,)
         return attn_output, present
 
 
