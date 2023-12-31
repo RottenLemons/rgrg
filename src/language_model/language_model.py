@@ -168,6 +168,7 @@ class GPT2PseudoAttention(nn.Module):
             k_word = self._split_heads(k_word, self.num_heads, self.head_dim)  # shape [batch_size x num_heads x 1 x head_dim]
             v_word = self._split_heads(v_word, self.num_heads, self.head_dim)  # shape [batch_size x num_heads x 1 x head_dim]
 
+            print(layer_past)
             past_key, past_value = layer_past
             k = torch.cat((past_key, k_word), dim=-2)
             v = torch.cat((past_value, v_word), dim=-2)
