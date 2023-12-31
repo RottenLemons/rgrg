@@ -123,13 +123,10 @@ class GPT2PseudoAttention(nn.Module):
 
     def forward(self,
                 word_hidden_states,  # shape [batch_size x seq_len x hidden_dim]
-                 
+                image_hidden_states,  # shape [batch_size x hidden_dim]
                 attention_mask,  # shape [batch_size, 1, 1, 1+seq_len]
                 layer_past,
-                use_cache,
-                image_hidden_states=None, # shape [batch_size x hidden_dim]
-                output_attentions=None,
-                head_mask=None):
+                use_cache):
 
         # query, key, value matrices each have shape [batch_size x seq_len x hidden_dim]
         q_word, k_word, v_word = self.c_attn(word_hidden_states).split(self.split_size, dim=2)
