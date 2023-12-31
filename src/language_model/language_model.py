@@ -145,7 +145,8 @@ class GPT2PseudoAttention(nn.Module):
                 num_beams = k_word.size(0) // k_image.size(0)
                 k_image = k_image.repeat_interleave(num_beams, dim=0)
                 v_image = v_image.repeat_interleave(num_beams, dim=0)
-
+            print(k_image.shape, k_word.shape)
+            print(v_image.shape, v_word.shape)
             k_image_word = torch.cat((k_image, k_word), dim=1)  # shape [batch_size x 1+seq_len x hidden_dim]
             v_image_word = torch.cat((v_image, v_word), dim=1)  # shape [batch_size x 1+seq_len x hidden_dim]
 
