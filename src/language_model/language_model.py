@@ -168,7 +168,6 @@ class GPT2PseudoAttention(nn.Module):
             k_word = self._split_heads(k_word, self.num_heads, self.head_dim)  # shape [batch_size x num_heads x 1 x head_dim]
             v_word = self._split_heads(v_word, self.num_heads, self.head_dim)  # shape [batch_size x num_heads x 1 x head_dim]
 
-            print(layer_past)
             past_key, past_value = layer_past
             k = torch.cat((past_key, k_word), dim=-2)
             v = torch.cat((past_value, v_word), dim=-2)
@@ -301,6 +300,7 @@ class LanguageModel(nn.Module):
             position_ids = position_ids.view(-1, input_shape[-1])
 
         if past_key_values is None:
+            print('a')
             past_length = 0
             past_key_values = tuple([None] * len(self.gpt2_blocks))
         else:
@@ -342,6 +342,7 @@ class LanguageModel(nn.Module):
         presents = () if use_cache else None
 
         for gpt2_block, layer_past in zip(self.gpt2_blocks, past_key_values):
+            print(layer_past)
             layer_norm_1 = gpt2_block[0]
             pseudo_self_attention = gpt2_block[1]
             layer_norm_2 = gpt2_block[2]
